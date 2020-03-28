@@ -20,6 +20,21 @@ function appendMessage(messages) {
     vm.messages.push(messages);
 }
 
+function addParticipantsMessage (data) {
+    var message = '';
+    if (data.numUsers === 1) {
+      message += "there's 1 participant";
+    } else {
+      message += "there are " + data.numUsers + " participants";
+    }
+    log(message);
+
+
+    socket.emit('welcome');
+    // send user joined message to all users
+    self.io.sockets.emit('user joined', newUser.user);
+  
+  }
 
 const vm = new Vue({
     data: {
@@ -66,6 +81,21 @@ const vm = new Vue({
     }
 }).$mount("#app");
 
+
+// Whenever the server emits 'user joined', log it in the chat body
+socket.on('user joined', function (data) {
+    log(data.username + ' joined');
+    addParticipantsMessage(data);
+  
+});
+
+  
+  // Whenever the server emits 'user left', log it in the chat body
+  socket.on('user left', function (data) {
+    log(data.username + ' left');
+    addParticipantsMessage(data);
+    removeChatTyping(data);
+  });
 
 socket.addEventListener('connected', setUserId);
 socket.addEventListener('disconnect',showDisconnect);
